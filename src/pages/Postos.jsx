@@ -177,7 +177,7 @@ export function Postos() {
 
   return (
     <div className="ocean-bg scanlines min-h-screen">
-      {/* Header */}
+      {/* ================= Header ==================== */}
       <div style={{
         borderBottom: '1px solid rgba(255,255,255,0.07)',
         padding: '14px 20px',
@@ -202,7 +202,7 @@ export function Postos() {
         </div>
       </div>
 
-      {/* Content */}
+      {/* ======================== Content ================ */}
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '24px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
           <div>
@@ -241,7 +241,7 @@ export function Postos() {
                     transition: 'opacity 0.2s',
                   }}
                 >
-                  {/* Ícone */}
+                  {/* =========================== Ícone ======================= */}
                   <div style={{
                     width: 36, height: 36, borderRadius: 8, flexShrink: 0,
                     background: inativo ? 'rgba(255,255,255,0.05)' : 'rgba(232,56,26,0.1)',
@@ -255,7 +255,7 @@ export function Postos() {
                     </svg>
                   </div>
 
-                  {/* Info */}
+                  {/* =================== Info ==================== */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: 15, fontWeight: 500, margin: 0 }}>{posto.nome}</p>
                     {posto.descricao && (
@@ -265,7 +265,7 @@ export function Postos() {
                     )}
                   </div>
 
-                  {/* Status do dia */}
+                  {/* ==================== Status do dia =========================== */}
                   {!inativo && st && (
                     <span className={
                       st === 'finalizado' ? 'badge-green' :
@@ -280,7 +280,7 @@ export function Postos() {
                     <span style={{ fontSize: 11, color: 'rgba(245,240,232,0.25)' }}>Inativo</span>
                   )}
 
-                  {/* Botões admin */}
+                  {/* ==================== Botões admin ================= */}
                   {isAdmin && (
                     <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
                       <IconBtn onClick={e => abrirEditar(posto, e)} title="Editar">
@@ -318,7 +318,7 @@ export function Postos() {
         )}
       </div>
 
-      {/* Modal */}
+      {/* ========================= Modal ===================== */}
       {modal && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',

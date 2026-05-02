@@ -146,7 +146,7 @@ export function PostoUsuario() {
 
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-        {/* CHECKIN */}
+        {/* ======================================== CHECKIN ==================================== */}
         <Section titulo="Checkin">
           <input ref={inputCheckinRef} type="file" accept="image/*" capture="environment"
             style={{ display: 'none' }} onChange={e => setFotoCheckin(e.target.files[0])} />
@@ -170,7 +170,7 @@ export function PostoUsuario() {
           <ListaFotos items={checkins} onAbrirImagem={setImagemAberta} />
         </Section>
 
-        {/* RELATORIO */}
+        {/* ===================================== RELATORIO ==================================== */}
         <Section titulo="Relatório">
 
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -226,7 +226,7 @@ export function PostoUsuario() {
           </button>
         </Section>
 
-        {/* CHECKOUT */}
+        {/* ========================================= CHECKOUT ====================================== */}
         <Section titulo="Checkout">
           <input ref={inputCheckoutRef} type="file" accept="image/*" capture="environment"
             style={{ display: 'none' }} onChange={e => setFotoCheckout(e.target.files[0])} />
