@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { login } from '../services/api'
 import { erro } from '../utils/feedback'
+import logo from '../assets/Logo1.png'
 
 export function Login() {
   const [form, setForm] = useState({ email: '', senha: '' })
@@ -32,17 +33,7 @@ export function Login() {
     <div className="ocean-bg scanlines min-h-screen flex items-center justify-center px-4">
       <div style={{ width: '100%', maxWidth: 380 }}>
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div style={{
-            width: 72, height: 72, borderRadius: '50%',
-            background: 'rgba(232,56,26,0.12)',
-            border: '2px solid rgba(232,56,26,0.35)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 20px',
-          }}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#E8381A" strokeWidth="1.5">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-          </div>
+          <img src={logo} alt="Brasão" style={{ width: 110, height: 110, margin: '0 auto 20px', display: 'block' }} />
           <h1 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 38, letterSpacing: 6, color: '#F5F0E8' }}>
             SALVAVIDAS
           </h1>

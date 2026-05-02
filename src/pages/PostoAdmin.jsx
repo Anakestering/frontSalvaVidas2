@@ -110,15 +110,16 @@ function GaleriaFotos({ items, onAbrirImagem }) {
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
       {items.map((item, i) => (
-        <div key={i} style={{ textAlign: 'center' }}>
+        <div key={item.id || i} style={{ textAlign: 'center' }}>
           <img
             src={item.foto}
             onClick={() => onAbrirImagem(item.foto)}
             style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 8, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.1)' }}
             alt=""
+            onError={e => e.target.style.display = 'none'}
           />
           <p style={{ fontSize: 9, color: 'rgba(245,240,232,0.3)', marginTop: 3 }}>
-            {item.horario ? new Date(item.horario).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''}
+            {item.horario || ''}
           </p>
         </div>
       ))}
@@ -131,26 +132,41 @@ const tdStyle = { padding: '6px', borderBottom: '1px solid rgba(255,255,255,0.05
 
 function TabelaRelatorio({ relatorio }) {
   return (
-    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-      <thead>
-        <tr>
-          <th style={thStyle}>Período</th>
-          <th style={thStyle}>Prevenções</th>
-          <th style={thStyle}>Lesões</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td style={tdStyle}>Manhã</td>
-          <td style={tdStyle}>{relatorio.manhaPrevencoes ?? 0}</td>
-          <td style={tdStyle}>{relatorio.manhaAtaques ?? 0}</td>
-        </tr>
-        <tr>
-          <td style={tdStyle}>Tarde</td>
-          <td style={tdStyle}>{relatorio.tardePrevencoes ?? 0}</td>
-          <td style={tdStyle}>{relatorio.tardeAtaques ?? 0}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+        <thead>
+          <tr>
+            <th style={thStyle}>Período</th>
+            <th style={thStyle}>Prevenções</th>
+            <th style={thStyle}>Lesões</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style={tdStyle}>Manhã</td>
+            <td style={tdStyle}>{relatorio.prevencoesManha ?? 0}</td>
+            <td style={tdStyle}>{relatorio.ataquesManha ?? 0}</td>
+          </tr>
+          <tr>
+            <td style={tdStyle}>Tarde</td>
+            <td style={tdStyle}>{relatorio.prevencoesTarde ?? 0}</td>
+            <td style={tdStyle}>{relatorio.ataquesTarde ?? 0}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      {relatorio.observacoes && (
+        <div style={{
+          marginTop: 10, padding: '8px 10px',
+          background: 'rgba(255,255,255,0.04)',
+          borderRadius: 6, border: '1px solid rgba(255,255,255,0.07)',
+        }}>
+          <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.4)', marginBottom: 3 }}>Observações</p>
+          <p style={{ fontSize: 13, color: '#F5F0E8', margin: 0 }}>{relatorio.observacoes}</p>
+        </div>
+      )}
+
+      <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.35)', marginTop: 8 }}>Relatório já enviado</p>
+    </div>
   )
 }

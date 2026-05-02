@@ -1,8 +1,10 @@
-
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { fazerCheckin, fazerCheckout, getCheckinsHoje, getCheckoutsHoje, getRelatorioHoje, criarRelatorio } from '../services/api'
-import { sucesso, erro, aviso, loading, loadingSucesso, loadingErro, confirmar } from '../utils/feedback'
+import { aviso, loading, loadingSucesso, loadingErro, confirmar } from '../utils/feedback'
+
+const thStyle = { padding: '8px 6px', textAlign: 'left', fontSize: 11, fontWeight: 500, color: 'rgba(245,240,232,0.4)', borderBottom: '1px solid rgba(255,255,255,0.07)', textTransform: 'uppercase', letterSpacing: 1 }
+const tdStyle = { padding: '6px', borderBottom: '1px solid rgba(255,255,255,0.05)' }
 
 export function PostoUsuario() {
   const { id } = useParams()
@@ -14,7 +16,11 @@ export function PostoUsuario() {
   const [checkins, setCheckins] = useState([])
   const [checkouts, setCheckouts] = useState([])
   const [relatorio, setRelatorio] = useState(null)
-  const [relatorioForm, setRelatorioForm] = useState({ manhaPrevencoes:'', manhaAtaques:'', tardePrevencoes:'', tardeAtaques:'' })
+  const [relatorioForm, setRelatorioForm] = useState({
+    prevencoesManha: '', ataquesManha: '',
+    prevencoesTarde: '', ataquesTarde: '',
+    observacoes: ''
+  })
   const [imagemAberta, setImagemAberta] = useState(null)
   const [fotoCheckin, setFotoCheckin] = useState(null)
   const [fotoCheckout, setFotoCheckout] = useState(null)
@@ -29,7 +35,18 @@ export function PostoUsuario() {
       setCheckins(c || [])
       setCheckouts(o || [])
       setRelatorio(r)
-    } catch { erro('Erro ao carregar dados') }
+      if (r) {
+        setRelatorioForm({
+          prevencoesManha: r.prevencoesManha ?? '',
+          ataquesManha: r.ataquesManha ?? '',
+          prevencoesTarde: r.prevencoesTarde ?? '',
+          ataquesTarde: r.ataquesTarde ?? '',
+          observacoes: r.observacoes || '',
+        })
+      }
+    } catch {
+      aviso('Erro ao carregar dados')
+    }
   }
 
   useEffect(() => { carregar() }, [id])
@@ -73,8 +90,8 @@ export function PostoUsuario() {
   }
 
   async function salvarRelatorio() {
-    const { manhaPrevencoes, manhaAtaques, tardePrevencoes, tardeAtaques } = relatorioForm
-    if ([manhaPrevencoes, manhaAtaques, tardePrevencoes, tardeAtaques].some(v => v === '')) {
+    const { prevencoesManha, ataquesManha, prevencoesTarde, ataquesTarde } = relatorioForm
+    if ([prevencoesManha, ataquesManha, prevencoesTarde, ataquesTarde].some(v => v === '')) {
       return aviso('Preencha todos os campos do relatório')
     }
     const ok = await confirmar({ titulo: 'Salvar relatório?', texto: 'Confirma o envio?' })
@@ -84,10 +101,11 @@ export function PostoUsuario() {
     try {
       await criarRelatorio({
         postoId: Number(id),
-        manhaPrevencoes: Number(manhaPrevencoes),
-        manhaAtaques: Number(manhaAtaques),
-        tardePrevencoes: Number(tardePrevencoes),
-        tardeAtaques: Number(tardeAtaques),
+        prevencoesManha: Number(prevencoesManha),
+        ataquesManha: Number(ataquesManha),
+        prevencoesTarde: Number(prevencoesTarde),
+        ataquesTarde: Number(ataquesTarde),
+        observacoes: relatorioForm.observacoes || null,
       })
       await carregar()
       loadingSucesso('Relatório salvo!')
@@ -100,7 +118,6 @@ export function PostoUsuario() {
 
   return (
     <div className="ocean-bg scanlines min-h-screen">
-      {/* Topbar */}
       <div style={{
         padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)',
         display: 'flex', alignItems: 'center', gap: 12, maxWidth: 480, margin: '0 auto',
@@ -110,7 +127,7 @@ export function PostoUsuario() {
           cursor: 'pointer', padding: 4, display: 'flex',
         }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
+            <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
         </button>
         <div style={{ flex: 1 }}>
@@ -130,9 +147,9 @@ export function PostoUsuario() {
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
 
         {/* CHECKIN */}
-        <Section titulo="Checkin" icon="camera">
+        <Section titulo="Checkin">
           <input ref={inputCheckinRef} type="file" accept="image/*" capture="environment"
-            className="hidden" onChange={e => setFotoCheckin(e.target.files[0])} />
+            style={{ display: 'none' }} onChange={e => setFotoCheckin(e.target.files[0])} />
 
           {fotoCheckin ? (
             <PreviewFoto
@@ -141,6 +158,7 @@ export function PostoUsuario() {
               onEnviar={enviarCheckin}
               busy={busy}
               label="Enviar Checkin"
+              onAbrirImagem={setImagemAberta}
             />
           ) : (
             <button className="btn-secondary" disabled={busy || checkins.length >= 3}
@@ -153,52 +171,65 @@ export function PostoUsuario() {
         </Section>
 
         {/* RELATORIO */}
-        <Section titulo="Relatório" icon="clipboard">
-          {relatorio ? (
-            <TabelaRelatorio relatorio={relatorio} />
-          ) : (
-            <>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                <thead>
-                  <tr>
-                    <th style={thStyle}>Período</th>
-                    <th style={thStyle}>Prevenções</th>
-                    <th style={thStyle}>Lesões Água-viva</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[['Manhã','manhaPrevencoes','manhaAtaques'],['Tarde','tardePrevencoes','tardeAtaques']].map(([label, p, a]) => (
-                    <tr key={label}>
-                      <td style={tdStyle}>{label}</td>
-                      <td style={tdStyle}>
-                        <input type="number" min="0"
-                          value={relatorioForm[p]}
-                          onChange={e => setRelatorioForm(prev => ({ ...prev, [p]: e.target.value }))}
-                          style={{ textAlign: 'center', padding: '6px 4px' }}
-                        />
-                      </td>
-                      <td style={tdStyle}>
-                        <input type="number" min="0"
-                          value={relatorioForm[a]}
-                          onChange={e => setRelatorioForm(prev => ({ ...prev, [a]: e.target.value }))}
-                          style={{ textAlign: 'center', padding: '6px 4px' }}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <button className="btn-primary" disabled={busy} onClick={salvarRelatorio} style={{ marginTop: 10 }}>
-                Salvar Relatório
-              </button>
-            </>
-          )}
+        <Section titulo="Relatório">
+
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr>
+                <th style={thStyle}>Período</th>
+                <th style={thStyle}>Prevenções</th>
+                <th style={thStyle}>Lesões Água-viva</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                ['Manhã', 'prevencoesManha', 'ataquesManha'],
+                ['Tarde', 'prevencoesTarde', 'ataquesTarde']
+              ].map(([label, p, a]) => (
+                <tr key={label}>
+                  <td style={tdStyle}>{label}</td>
+                  <td style={tdStyle}>
+                    <input type="number" min="0"
+                      value={relatorioForm[p]}
+                      onChange={e => setRelatorioForm(prev => ({ ...prev, [p]: e.target.value }))}
+                      style={{ textAlign: 'center', padding: '6px 4px' }}
+                    />
+                  </td>
+                  <td style={tdStyle}>
+                    <input type="number" min="0"
+                      value={relatorioForm[a]}
+                      onChange={e => setRelatorioForm(prev => ({ ...prev, [a]: e.target.value }))}
+                      style={{ textAlign: 'center', padding: '6px 4px' }}
+                    />
+                  </td>
+                </tr>
+              ))}
+              <tr>
+                <td colSpan={3} style={{ paddingTop: 10 }}>
+                  <label style={{ fontSize: 11, color: 'rgba(245,240,232,0.45)', display: 'block', marginBottom: 6 }}>
+                    Observações (opcional)
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Descreva ocorrências, condições do mar..."
+                    value={relatorioForm.observacoes || ''}
+                    onChange={e => setRelatorioForm(prev => ({ ...prev, observacoes: e.target.value }))}
+                    style={{ resize: 'none', width: '100%' }}
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <button className="btn-primary" disabled={busy} onClick={salvarRelatorio}>
+            {relatorio ? 'Atualizar Relatório' : 'Salvar Relatório'}
+          </button>
         </Section>
 
         {/* CHECKOUT */}
-        <Section titulo="Checkout" icon="check">
+        <Section titulo="Checkout">
           <input ref={inputCheckoutRef} type="file" accept="image/*" capture="environment"
-            className="hidden" onChange={e => setFotoCheckout(e.target.files[0])} />
+            style={{ display: 'none' }} onChange={e => setFotoCheckout(e.target.files[0])} />
 
           {fotoCheckout ? (
             <PreviewFoto
@@ -207,6 +238,7 @@ export function PostoUsuario() {
               onEnviar={enviarCheckout}
               busy={busy}
               label="Enviar Checkout"
+              onAbrirImagem={setImagemAberta}
             />
           ) : (
             <button
@@ -234,9 +266,6 @@ export function PostoUsuario() {
   )
 }
 
-const thStyle = { padding: '8px 6px', textAlign: 'left', fontSize: 11, fontWeight: 500, color: 'rgba(245,240,232,0.4)', borderBottom: '1px solid rgba(255,255,255,0.07)', textTransform: 'uppercase', letterSpacing: 1 }
-const tdStyle = { padding: '6px', borderBottom: '1px solid rgba(255,255,255,0.05)' }
-
 function Section({ titulo, children }) {
   return (
     <div className="card" style={{ padding: 16 }}>
@@ -246,11 +275,16 @@ function Section({ titulo, children }) {
   )
 }
 
-function PreviewFoto({ file, onRemover, onEnviar, busy, label }) {
+function PreviewFoto({ file, onRemover, onEnviar, busy, label, onAbrirImagem }) {
   const url = URL.createObjectURL(file)
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <img src={url} style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8 }} alt="" />
+      <img
+        src={url}
+        onClick={() => onAbrirImagem(url)}
+        style={{ width: '100%', maxHeight: 200, objectFit: 'cover', borderRadius: 8, cursor: 'zoom-in' }}
+        alt=""
+      />
       <div style={{ display: 'flex', gap: 8 }}>
         <button className="btn-secondary" onClick={onRemover}>Remover</button>
         <button className="btn-primary" onClick={onEnviar} disabled={busy}>{label}</button>
@@ -264,15 +298,16 @@ function ListaFotos({ items, onAbrirImagem }) {
   return (
     <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
       {items.map((item, i) => (
-        <div key={i} style={{ textAlign: 'center' }}>
+        <div key={item.id || i} style={{ textAlign: 'center' }}>
           <img
             src={item.foto}
             onClick={() => onAbrirImagem(item.foto)}
             style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 8, cursor: 'pointer', border: '1px solid rgba(255,255,255,0.1)' }}
             alt=""
+            onError={e => e.target.style.display = 'none'}
           />
           <p style={{ fontSize: 9, color: 'rgba(245,240,232,0.3)', marginTop: 3 }}>
-            {item.horario ? new Date(item.horario).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : ''}
+            {item.horario || ''}
           </p>
         </div>
       ))}
@@ -282,7 +317,8 @@ function ListaFotos({ items, onAbrirImagem }) {
 
 function TabelaRelatorio({ relatorio }) {
   return (
-    <div>
+    <div style={{ marginBottom: 12, padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.07)' }}>
+      <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.4)', marginBottom: 8 }}>Último envio</p>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
         <thead>
           <tr>
@@ -294,17 +330,22 @@ function TabelaRelatorio({ relatorio }) {
         <tbody>
           <tr>
             <td style={tdStyle}>Manhã</td>
-            <td style={tdStyle}>{relatorio.manhaPrevencoes ?? 0}</td>
-            <td style={tdStyle}>{relatorio.manhaAtaques ?? 0}</td>
+            <td style={tdStyle}>{relatorio.prevencoesManha ?? 0}</td>
+            <td style={tdStyle}>{relatorio.ataquesManha ?? 0}</td>
           </tr>
           <tr>
             <td style={tdStyle}>Tarde</td>
-            <td style={tdStyle}>{relatorio.tardePrevencoes ?? 0}</td>
-            <td style={tdStyle}>{relatorio.tardeAtaques ?? 0}</td>
+            <td style={tdStyle}>{relatorio.prevencoesTarde ?? 0}</td>
+            <td style={tdStyle}>{relatorio.ataquesTarde ?? 0}</td>
           </tr>
         </tbody>
       </table>
-      <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.35)', marginTop: 8 }}>Relatório já enviado</p>
+      {relatorio.observacoes && (
+        <div style={{ marginTop: 8 }}>
+          <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.4)', marginBottom: 3 }}>Observações</p>
+          <p style={{ fontSize: 13, color: '#F5F0E8', margin: 0 }}>{relatorio.observacoes}</p>
+        </div>
+      )}
     </div>
   )
 }
