@@ -143,6 +143,14 @@ export async function getRelatorios() {
   return res.json()
 }
 
+export async function exportarRelatorios(inicio, fim) {
+  const res = await fetch(`${BASE_URL}/relatorio/exportar?inicio=${inicio}&fim=${fim}`, {
+    headers: authHeaders(),
+  })
+  if (!res.ok) throw new Error('Erro ao exportar')
+  return res.blob()
+}
+
 export async function getRelatorioHoje(postoId) {
   const res = await fetch(`${BASE_URL}/relatorio/hoje/${postoId}`, { headers: authHeaders() })
   if (!res.ok) return null

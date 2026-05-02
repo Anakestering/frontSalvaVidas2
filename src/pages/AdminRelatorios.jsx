@@ -2,10 +2,13 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getRelatorios, ocultarRelatorio, ocultarTodosRelatorios } from '../services/api'
-import { erro, sucesso, confirmar } from '../utils/feedback'
+import { erro, sucesso, confirmar, loading, loadingErro, loadingSucesso } from '../utils/feedback'
+import { exportarRelatorios } from "../services/api";
 
 export function AdminRelatorios() {
   const [relatorios, setRelatorios] = useState([])
+  const [inicio, setInicio] = useState('')
+  const [fim, setFim] = useState('')
   const navigate = useNavigate()
 
   async function carregar() {
@@ -16,6 +19,26 @@ export function AdminRelatorios() {
   }
 
   useEffect(() => { carregar() }, [])
+
+  async function handleExportar() {
+    if (!inicio || !fim) return erro('Selecione o período de exportação')
+    loading('Gerando Excel...')
+    try {
+      const blob = await exportarRelatorios(inicio, fim)
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `relatorios_${inicio}_${fim}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+      loadingSucesso('Download concluído!')
+    } catch (err) {
+      console.error("Erro ao exportar:", err);
+      loadingErro('Erro ao exportar')
+    }
+  }
 
   async function handleOcultar(id) {
     const ok = await confirmar({ titulo: 'Ocultar relatório?', texto: 'Será removido da visualização.' })
@@ -43,6 +66,18 @@ export function AdminRelatorios() {
         padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)',
         display: 'flex', alignItems: 'center', gap: 12, maxWidth: 520, margin: '0 auto',
       }}>
+        {/* Exportação */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 4 }}>
+          <p className="section-label">Exportar por período</p>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input type="date" value={inicio} onChange={e => setInicio(e.target.value)} />
+            <input type="date" value={fim} onChange={e => setFim(e.target.value)} />
+          </div>
+          <button className="btn-primary" onClick={handleExportar}>
+            Exportar Excel
+          </button>
+        </div>
+        <hr className="divider" />
         <button onClick={() => navigate('/postos')} style={{ background: 'none', border: 'none', color: 'rgba(245,240,232,0.4)', cursor: 'pointer', padding: 4 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M19 12H5M12 19l-7-7 7-7" />
