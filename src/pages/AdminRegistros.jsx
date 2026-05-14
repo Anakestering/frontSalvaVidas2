@@ -1,124 +1,127 @@
-
-import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getCheckins, getCheckouts, ocultarCheckin, ocultarCheckout, ocultarTodosCheckins, ocultarTodosCheckouts } from '../services/api'
-import { erro, sucesso, confirmar } from '../utils/feedback'
 
+/**
+ * Página hub de registros.
+ * Substituiu a página única que listava checkins e checkouts juntos.
+ * Agora redireciona para /admin/checkins ou /admin/checkouts.
+ */
 export function AdminRegistros() {
-  const [checkins, setCheckins] = useState([])
-  const [checkouts, setCheckouts] = useState([])
-  const [imagemAberta, setImagemAberta] = useState(null)
   const navigate = useNavigate()
-
-  async function carregar() {
-    try {
-      const [c, o] = await Promise.all([getCheckins(), getCheckouts()])
-      setCheckins(c || [])
-      setCheckouts(o || [])
-    } catch { erro('Erro ao carregar registros') }
-  }
-
-  useEffect(() => { carregar() }, [])
-
-  async function handleOcultarCheckin(id) {
-    const ok = await confirmar({ titulo: 'Ocultar checkin?', texto: 'Será removido da visualização.' })
-    if (!ok) return
-    try {
-      await ocultarCheckin(id)
-      setCheckins(prev => prev.filter(c => c.id !== id))
-      sucesso('Ocultado')
-    } catch { erro('Erro ao ocultar') }
-  }
-
-  async function handleOcultarCheckout(id) {
-    const ok = await confirmar({ titulo: 'Ocultar checkout?', texto: 'Será removido da visualização.' })
-    if (!ok) return
-    try {
-      await ocultarCheckout(id)
-      setCheckouts(prev => prev.filter(c => c.id !== id))
-      sucesso('Ocultado')
-    } catch { erro('Erro ao ocultar') }
-  }
-
-  async function handleOcultarTodos() {
-    const ok = await confirmar({ titulo: 'Ocultar tudo?', texto: 'Todos os checkins e checkouts serão removidos.', confirmText: 'Ocultar todos' })
-    if (!ok) return
-    try {
-      await Promise.all([ocultarTodosCheckins(), ocultarTodosCheckouts()])
-      setCheckins([]); setCheckouts([])
-      sucesso('Todos ocultados')
-    } catch { erro('Erro') }
-  }
 
   return (
     <div className="ocean-bg scanlines min-h-screen">
+
+      {/* HEADER */}
       <div style={{
-        padding: '12px 16px', borderBottom: '1px solid rgba(255,255,255,0.07)',
-        display: 'flex', alignItems: 'center', gap: 12, maxWidth: 520, margin: '0 auto',
+        padding: '12px 16px',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        display: 'flex', alignItems: 'center', gap: 12,
+        maxWidth: 520, margin: '0 auto',
       }}>
-        <button onClick={() => navigate('/postos')} style={{ background: 'none', border: 'none', color: 'rgba(245,240,232,0.4)', cursor: 'pointer', padding: 4 }}>
+        <button
+          onClick={() => navigate('/postos')}
+          style={{ background: 'none', border: 'none', color: 'rgba(245,240,232,0.4)', cursor: 'pointer', padding: 4 }}
+        >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
+            <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
         </button>
         <div style={{ flex: 1 }}>
           <h1 style={{ fontSize: 16, fontWeight: 500, margin: 0 }}>Registros</h1>
-          <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.35)', margin: 0 }}>Checkins e checkouts</p>
+          <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.35)', margin: 0 }}>
+            Selecione o tipo de registro
+          </p>
         </div>
-        <button className="btn-danger" onClick={handleOcultarTodos} style={{ width: 'auto', padding: '6px 14px', fontSize: 12 }}>
-          Ocultar todos
+      </div>
+
+      {/* BOTÕES */}
+      <div style={{
+        maxWidth: 520, margin: '32px auto 0',
+        padding: '0 16px',
+        display: 'flex', flexDirection: 'column', gap: 12,
+      }}>
+
+        {/* Checkins */}
+        <button
+          onClick={() => navigate('/admin/checkins')}
+          style={{
+            background: 'rgba(59,130,246,0.08)',
+            border: '1px solid rgba(59,130,246,0.25)',
+            borderRadius: 12, padding: '18px 20px',
+            display: 'flex', alignItems: 'center', gap: 14,
+            cursor: 'pointer', textAlign: 'left', width: '100%',
+            transition: 'background 0.15s ease',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(59,130,246,0.15)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(59,130,246,0.08)'}
+        >
+          {/* ícone login */}
+          <div style={{
+            width: 40, height: 40, borderRadius: 10,
+            background: 'rgba(59,130,246,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(59,130,246,0.9)" strokeWidth="2">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+              <polyline points="10 17 15 12 10 7"/>
+              <line x1="15" y1="12" x2="3" y2="12"/>
+            </svg>
+          </div>
+          <div>
+            <p style={{ fontSize: 14, fontWeight: 600, margin: 0, color: 'rgba(245,240,232,0.9)' }}>
+              Checkins
+            </p>
+            <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.35)', margin: 0, marginTop: 2 }}>
+              Registros de entrada · atrasos marcados em vermelho
+            </p>
+          </div>
+          <svg style={{ marginLeft: 'auto', flexShrink: 0 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(245,240,232,0.2)" strokeWidth="2">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
         </button>
+
+        {/* Checkouts */}
+        <button
+          onClick={() => navigate('/admin/checkouts')}
+          style={{
+            background: 'rgba(34,197,94,0.08)',
+            border: '1px solid rgba(34,197,94,0.25)',
+            borderRadius: 12, padding: '18px 20px',
+            display: 'flex', alignItems: 'center', gap: 14,
+            cursor: 'pointer', textAlign: 'left', width: '100%',
+            transition: 'background 0.15s ease',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(34,197,94,0.15)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(34,197,94,0.08)'}
+        >
+          {/* ícone logout */}
+          <div style={{
+            width: 40, height: 40, borderRadius: 10,
+            background: 'rgba(34,197,94,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(34,197,94,0.9)" strokeWidth="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+          </div>
+          <div>
+            <p style={{ fontSize: 14, fontWeight: 600, margin: 0, color: 'rgba(245,240,232,0.9)' }}>
+              Checkouts
+            </p>
+            <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.35)', margin: 0, marginTop: 2 }}>
+              Registros de saída
+            </p>
+          </div>
+          <svg style={{ marginLeft: 'auto', flexShrink: 0 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(245,240,232,0.2)" strokeWidth="2">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </button>
+
       </div>
-
-      <div style={{ maxWidth: 520, margin: '0 auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 20 }}>
-        <GrupoRegistros titulo="Checkins" cor="#3b82f6" items={checkins} onOcultar={handleOcultarCheckin} onAbrirImagem={setImagemAberta} />
-        <GrupoRegistros titulo="Checkouts" cor="#22c55e" items={checkouts} onOcultar={handleOcultarCheckout} onAbrirImagem={setImagemAberta} />
-      </div>
-
-      {imagemAberta && (
-        <div onClick={() => setImagemAberta(null)} style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.92)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200,
-        }}>
-          <img src={imagemAberta} style={{ maxWidth: '92%', maxHeight: '92%', borderRadius: 8 }} alt="" />
-        </div>
-      )}
-    </div>
-  )
-}
-
-function GrupoRegistros({ titulo, cor, items, onOcultar, onAbrirImagem }) {
-  return (
-    <div>
-      <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase', color: cor, marginBottom: 10 }}>{titulo}</p>
-      {items.length === 0 ? (
-        <p style={{ fontSize: 13, color: 'rgba(245,240,232,0.3)', padding: '16px 0' }}>Nenhum registro</p>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 10 }}>
-          {items.map(item => (
-            <div key={item.id} className="card" style={{ padding: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
-              <img
-                src={item.foto}
-                onClick={() => onAbrirImagem(item.foto)}
-                style={{ width: '100%', height: 80, objectFit: 'cover', borderRadius: 6, cursor: 'pointer' }}
-                alt=""
-              />
-              <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.4)', margin: 0 }}>
-                {item.posto || item.postoId}
-              </p>
-              <p style={{ fontSize: 10, color: 'rgba(245,240,232,0.3)', margin: 0 }}>
-                {item.horario ? new Date(item.horario).toLocaleString('pt-BR') : ''}
-              </p>
-              <button onClick={() => onOcultar(item.id)} style={{
-                background: 'none', border: 'none', color: 'rgba(232,56,26,0.6)',
-                fontSize: 11, cursor: 'pointer', textAlign: 'left', padding: 0,
-              }}>
-                ocultar
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   )
 }
