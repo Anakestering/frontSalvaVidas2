@@ -1,8 +1,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { getCheckinsHoje, getCheckoutsHoje, getRelatorioHoje } from '../services/api'
+import { getCheckinsHoje, getCheckoutsHoje, getRelatorioHoje, getPosto } from '../services/api'
 import { erro } from '../utils/feedback'
+
 
 export function PostoAdmin() {
   const { id } = useParams()
@@ -11,18 +12,21 @@ export function PostoAdmin() {
   const [checkouts, setCheckouts] = useState([])
   const [relatorio, setRelatorio] = useState(null)
   const [imagemAberta, setImagemAberta] = useState(null)
+  const [posto, setPosto] = useState(null)
   const interval = useRef(null)
 
   async function carregar() {
     try {
-      const [c, o, r] = await Promise.all([
+      const [c, o, r, p] = await Promise.all([
         getCheckinsHoje(id),
         getCheckoutsHoje(id),
         getRelatorioHoje(id),
+        getPosto(id), 
       ])
       setCheckins(c || [])
       setCheckouts(o || [])
       setRelatorio(r)
+      setPosto(p)
     } catch { erro('Erro ao carregar dados') }
   }
 
@@ -46,7 +50,7 @@ export function PostoAdmin() {
           </svg>
         </button>
         <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: 16, fontWeight: 500, margin: 0 }}>Posto {id}</h1>
+          <h1 style={{ fontSize: 16, fontWeight: 500, margin: 0 }}>{posto?.nome || `Posto ${id}`}</h1>
           <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.35)', margin: 0 }}>Monitoramento em tempo real</p>
         </div>
         {finalizado

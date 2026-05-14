@@ -37,7 +37,7 @@ export function Login() {
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <img src={logo} alt="Brasão" style={{ width: 130, height: 130, margin: '0 auto 5px', display: 'block' }} />
           <h1 style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 38, letterSpacing: 6, color: '#F5F0E8' }}>
-            SALVAVIDAS
+            GUARDAVIDAS
           </h1>
           <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.35)', letterSpacing: 3, textTransform: 'uppercase', marginTop: 6 }}>
             Sistema Operacional

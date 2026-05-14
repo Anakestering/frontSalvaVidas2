@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { fazerCheckin, fazerCheckout, getCheckinsHoje, getCheckoutsHoje, getRelatorioHoje, criarRelatorio } from '../services/api'
+import { fazerCheckin, fazerCheckout, getCheckinsHoje, getCheckoutsHoje, getRelatorioHoje, criarRelatorio, getPosto } from '../services/api'
 import { aviso, loading, loadingSucesso, loadingErro, confirmar } from '../utils/feedback'
 
 const thStyle = { padding: '8px 6px', textAlign: 'left', fontSize: 11, fontWeight: 500, color: 'rgba(245,240,232,0.4)', borderBottom: '1px solid rgba(255,255,255,0.07)', textTransform: 'uppercase', letterSpacing: 1 }
@@ -11,6 +11,7 @@ export function PostoUsuario() {
   const navigate = useNavigate()
   const inputCheckinRef = useRef(null)
   const inputCheckoutRef = useRef(null)
+  const [posto, setPosto] = useState(null)
 
   const [busy, setBusy] = useState(false)
   const [checkins, setCheckins] = useState([])
@@ -27,14 +28,16 @@ export function PostoUsuario() {
 
   async function carregar() {
     try {
-      const [c, o, r] = await Promise.all([
+      const [c, o, r, p] = await Promise.all([
         getCheckinsHoje(id),
         getCheckoutsHoje(id),
         getRelatorioHoje(id),
+        getPosto(id),
       ])
       setCheckins(c || [])
       setCheckouts(o || [])
       setRelatorio(r)
+      setPosto(p)
       if (r) {
         setRelatorioForm({
           prevencoesManha: r.prevencoesManha ?? '',
@@ -131,7 +134,7 @@ export function PostoUsuario() {
           </svg>
         </button>
         <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: 16, fontWeight: 500, margin: 0 }}>Posto {id}</h1>
+          <h1 style={{ fontSize: 16, fontWeight: 500, margin: 0 }}>{posto?.nome || `Posto ${id}`}</h1>
           <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.35)', margin: 0 }}>
             {finalizado ? '— Finalizado hoje' : '— Em operação'}
           </p>

@@ -25,6 +25,13 @@ export async function login(email, senha) {
 }
 
 // POSTOS
+
+export async function getPosto(id) {
+  const res = await fetch(`${BASE_URL}/postos/${id}`, { headers: authHeaders() })
+  if (!res.ok) throw new Error('Erro ao buscar posto')
+  return res.json()
+}
+
 export async function getPostos() {
   const res = await fetch(`${BASE_URL}/postos`, { headers: authHeaders() })
   if (!res.ok) throw new Error('Erro ao buscar postos')

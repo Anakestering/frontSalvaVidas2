@@ -89,22 +89,15 @@ export function Postos() {
           getCheckoutsHoje(p.id),
         ])
 
-        // Verifica se existe pelo menos um checkin após 07:30
         let atrasado = false
-
         if (checkins && checkins.length > 0) {
           atrasado = checkins.some(checkin => {
             const horario = checkin.horario
             if (!horario) return false
-
-            // Formato recebido: "01/05/2026 13:45"
             const partes = horario.split(' ')
             if (partes.length < 2) return false
-
             const [horas, minutos] = partes[1].split(':').map(Number)
-
             if (Number.isNaN(horas) || Number.isNaN(minutos)) return false
-
             return horas > 7 || (horas === 7 && minutos > 30)
           })
         }
@@ -119,34 +112,13 @@ export function Postos() {
     )
 
     const map = {}
-
     resultados.forEach(r => {
-      if (r.status === 'fulfilled') {
-        map[r.value.id] = r.value
-      }
+      if (r.status === 'fulfilled') map[r.value.id] = r.value
     })
-
     setStatus(map)
   }
 
   useEffect(() => { carregar() }, [])
-
-  function getStatusPosto(posto) {
-    const s = status[posto.id]
-    if (!s) return null
-
-    // Checkout realizado = Finalizado (verde)
-    if (s.checkouts > 0) return 'finalizado'
-
-    // Checkin realizado após 07:30 = Atrasado (vermelho)
-    if (s.checkins > 0 && s.atrasado) return 'atrasado'
-
-    // Checkin realizado no horário = Em andamento (amarelo)
-    if (s.checkins > 0) return 'andamento'
-
-    // Sem checkin = não exibe nenhum badge
-    return null
-  }
 
   function abrirCriar() {
     setForm({ nome: '', descricao: '' })
@@ -173,7 +145,6 @@ export function Postos() {
       console.error('Erro ao salvar posto')
     }
   }
-
 
   async function handleDeletar(posto, e) {
     e.stopPropagation()
@@ -223,7 +194,7 @@ export function Postos() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <img src={logo} alt="Brasão" style={{ width: 60, height: 60 }} />
-          <span style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 18, letterSpacing: 3 }}>SALVAVIDAS</span>
+          <span style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 18, letterSpacing: 3 }}>GUARDAVIDAS</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {isAdmin && (
@@ -263,8 +234,12 @@ export function Postos() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {postos.map(posto => {
-              const st = getStatusPosto(posto)
+              const s = status[posto.id]
               const inativo = !posto.ativo
+              const temCheckin = s && s.checkins > 0
+              const temCheckout = s && s.checkouts > 0
+              const atrasado = s?.atrasado || false
+
               return (
                 <div
                   key={posto.id}
@@ -302,25 +277,25 @@ export function Postos() {
                     )}
                   </div>
 
+                  {/* ==================== Badges de status ==================== */}
+                  {!inativo && temCheckin && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
+                      {/* Checkin realizado — verde se no horário, vermelho se atrasado */}
+                      <span className={atrasado ? 'badge-red' : 'badge-green'}>
+                        Checkin realizado
+                      </span>
 
+                      {/* Checkout realizado — só aparece se houver checkout */}
+                      {temCheckout && (
+                        <span className="badge-green">
+                          Checkout finalizado
+                        </span>
+                      )}
+                    </div>
+                  )}
 
-                  {/* ==================== Status do dia =========================== */}
-                  {!inativo && st && (
-                    <span
-                      className={
-                        st === 'finalizado'
-                          ? 'badge-green'
-                          : st === 'atrasado'
-                            ? 'badge-red'
-                            : 'badge-yellow'
-                      }
-                    >
-                      {st === 'finalizado'
-                        ? 'Finalizado'
-                        : st === 'atrasado'
-                          ? 'Atrasado'
-                          : 'Em andamento'}
-                    </span>
+                  {inativo && (
+                    <span style={{ fontSize: 11, color: 'rgba(245,240,232,0.25)' }}>Inativo</span>
                   )}
 
                   {/* ==================== Botões admin ================= */}
