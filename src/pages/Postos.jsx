@@ -26,7 +26,9 @@ async function getPostosOrdenados() {
 
 async function criarPosto(dados) {
   const res = await fetch(`${BASE_URL}/postos`, {
-    method: 'POST', headers: authJsonHeaders(), body: JSON.stringify(dados),
+    method: 'POST',
+    headers: authJsonHeaders(),
+    body: JSON.stringify({ ...dados, ativo: true }),
   })
   if (!res.ok) throw new Error('Erro ao criar posto')
   return res.json()
@@ -79,25 +81,51 @@ export function Postos() {
 
   async function carregarStatus(lista) {
     const ativos = lista.filter(p => p.ativo)
+
     const resultados = await Promise.allSettled(
       ativos.map(async (p) => {
         const [checkins, checkouts] = await Promise.all([
           getCheckinsHoje(p.id),
           getCheckoutsHoje(p.id),
         ])
+
+        // Verifica se existe pelo menos um checkin após 07:30
+        let atrasado = false
+
+        if (checkins && checkins.length > 0) {
+          atrasado = checkins.some(checkin => {
+            const horario = checkin.horario
+            if (!horario) return false
+
+            // Formato recebido: "01/05/2026 13:45"
+            const partes = horario.split(' ')
+            if (partes.length < 2) return false
+
+            const [horas, minutos] = partes[1].split(':').map(Number)
+
+            if (Number.isNaN(horas) || Number.isNaN(minutos)) return false
+
+            return horas > 7 || (horas === 7 && minutos > 30)
+          })
+        }
+
         return {
           id: p.id,
           checkins: checkins?.length || 0,
           checkouts: checkouts?.length || 0,
+          atrasado,
         }
       })
     )
+
     const map = {}
+
     resultados.forEach(r => {
       if (r.status === 'fulfilled') {
         map[r.value.id] = r.value
       }
     })
+
     setStatus(map)
   }
 
@@ -106,9 +134,18 @@ export function Postos() {
   function getStatusPosto(posto) {
     const s = status[posto.id]
     if (!s) return null
+
+    // Checkout realizado = Finalizado (verde)
     if (s.checkouts > 0) return 'finalizado'
+
+    // Checkin realizado após 07:30 = Atrasado (vermelho)
+    if (s.checkins > 0 && s.atrasado) return 'atrasado'
+
+    // Checkin realizado no horário = Em andamento (amarelo)
     if (s.checkins > 0) return 'andamento'
-    return 'aguardando'
+
+    // Sem checkin = não exibe nenhum badge
+    return null
   }
 
   function abrirCriar() {
@@ -139,21 +176,21 @@ export function Postos() {
 
 
   async function handleDeletar(posto, e) {
-  e.stopPropagation()
-  const ok = await confirmar({
-    titulo: `Deletar "${posto.nome}"?`,
-    texto: 'Essa ação não pode ser desfeita.',
-    confirmText: 'Deletar',
-    cancelText: 'Cancelar'
-  })
-  if (!ok) return
-  try {
-    await deletarPosto(posto.id)
-    carregar()
-  } catch {
-    console.error('Erro ao deletar')
+    e.stopPropagation()
+    const ok = await confirmar({
+      titulo: `Deletar "${posto.nome}"?`,
+      texto: 'Essa ação não pode ser desfeita.',
+      confirmText: 'Deletar',
+      cancelText: 'Cancelar'
+    })
+    if (!ok) return
+    try {
+      await deletarPosto(posto.id)
+      carregar()
+    } catch {
+      console.error('Erro ao deletar')
+    }
   }
-}
 
   async function handleAlternarAtivo(posto, e) {
     e.stopPropagation()
@@ -250,8 +287,8 @@ export function Postos() {
                   }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                       stroke={inativo ? 'rgba(245,240,232,0.3)' : '#E8381A'} strokeWidth="2">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                      <circle cx="12" cy="10" r="3"/>
+                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                      <circle cx="12" cy="10" r="3" />
                     </svg>
                   </div>
 
@@ -265,19 +302,25 @@ export function Postos() {
                     )}
                   </div>
 
+
+
                   {/* ==================== Status do dia =========================== */}
                   {!inativo && st && (
-                    <span className={
-                      st === 'finalizado' ? 'badge-green' :
-                      st === 'andamento' ? 'badge-yellow' : 'badge-red'
-                    }>
-                      {st === 'finalizado' ? 'Finalizado' :
-                       st === 'andamento' ? 'Em andamento' : 'Aguardando'}
+                    <span
+                      className={
+                        st === 'finalizado'
+                          ? 'badge-green'
+                          : st === 'atrasado'
+                            ? 'badge-red'
+                            : 'badge-yellow'
+                      }
+                    >
+                      {st === 'finalizado'
+                        ? 'Finalizado'
+                        : st === 'atrasado'
+                          ? 'Atrasado'
+                          : 'Em andamento'}
                     </span>
-                  )}
-
-                  {inativo && (
-                    <span style={{ fontSize: 11, color: 'rgba(245,240,232,0.25)' }}>Inativo</span>
                   )}
 
                   {/* ==================== Botões admin ================= */}
@@ -285,28 +328,28 @@ export function Postos() {
                     <div style={{ display: 'flex', gap: 6 }} onClick={e => e.stopPropagation()}>
                       <IconBtn onClick={e => abrirEditar(posto, e)} title="Editar">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                         </svg>
                       </IconBtn>
                       <IconBtn onClick={e => handleAlternarAtivo(posto, e)}
                         title={posto.ativo ? 'Desativar' : 'Ativar'} warning>
                         {posto.ativo ? (
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M18.36 6.64A9 9 0 0 1 20.77 15M6.16 6.16a9 9 0 1 0 12.68 12.68M2 2l20 20"/>
+                            <path d="M18.36 6.64A9 9 0 0 1 20.77 15M6.16 6.16a9 9 0 1 0 12.68 12.68M2 2l20 20" />
                           </svg>
                         ) : (
                           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="8" x2="12" y2="16"/>
-                            <line x1="8" y1="12" x2="16" y2="12"/>
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="16" />
+                            <line x1="8" y1="12" x2="16" y2="12" />
                           </svg>
                         )}
                       </IconBtn>
                       <IconBtn onClick={e => handleDeletar(posto, e)} title="Deletar" danger>
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="3 6 5 6 21 6"/>
-                          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
                         </svg>
                       </IconBtn>
                     </div>

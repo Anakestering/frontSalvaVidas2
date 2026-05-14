@@ -73,7 +73,7 @@ export function AdminRegistros() {
               Checkins
             </p>
             <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.35)', margin: 0, marginTop: 2 }}>
-              Registros de entrada · atrasos marcados em vermelho
+              Registros de entrada
             </p>
           </div>
           <svg style={{ marginLeft: 'auto', flexShrink: 0 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(245,240,232,0.2)" strokeWidth="2">

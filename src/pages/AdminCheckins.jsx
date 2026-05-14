@@ -5,13 +5,21 @@ import { erro, sucesso, confirmar } from '../utils/feedback'
 
 /**
  * Verifica se um checkin está atrasado.
- * Regra: horário do checkin depois das 07:30 = atrasado.
+ * Regra: como o backend envia "dd/MM/yyyy HH:mm",
+ * não podemos usar new Date(horario).
  */
 function isAtrasado(horario) {
   if (!horario) return false
-  const data = new Date(horario)
-  const horas = data.getHours()
-  const minutos = data.getMinutes()
+
+  // Extrai apenas a parte da hora de "01/05/2026 13:45"
+  const partes = horario.split(' ')
+  if (partes.length < 2) return false
+
+  const horaCompleta = partes[1] // "13:45"
+  const [horas, minutos] = horaCompleta.split(':').map(Number)
+
+  if (Number.isNaN(horas) || Number.isNaN(minutos)) return false
+
   return horas > 7 || (horas === 7 && minutos > 30)
 }
 
@@ -38,6 +46,7 @@ export function AdminCheckins() {
       texto: 'Será removido da visualização.',
     })
     if (!ok) return
+
     try {
       await ocultarCheckin(id)
       setCheckins(prev => prev.filter(c => c.id !== id))
@@ -54,6 +63,7 @@ export function AdminCheckins() {
       confirmText: 'Ocultar todos',
     })
     if (!ok) return
+
     try {
       await ocultarTodosCheckins()
       setCheckins([])
@@ -70,21 +80,45 @@ export function AdminCheckins() {
       <div style={{
         padding: '12px 16px',
         borderBottom: '1px solid rgba(255,255,255,0.07)',
-        display: 'flex', alignItems: 'center', gap: 12,
-        maxWidth: 520, margin: '0 auto',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        maxWidth: 520,
+        margin: '0 auto',
       }}>
         <button
           onClick={() => navigate('/admin/registros')}
-          style={{ background: 'none', border: 'none', color: 'rgba(245,240,232,0.4)', cursor: 'pointer', padding: 4 }}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'rgba(245,240,232,0.4)',
+            cursor: 'pointer',
+            padding: 4,
+          }}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
             <path d="M19 12H5M12 19l-7-7 7-7" />
           </svg>
         </button>
 
         <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: 16, fontWeight: 500, margin: 0 }}>Checkins</h1>
-          <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.35)', margin: 0 }}>
+          <h1 style={{ fontSize: 16, fontWeight: 500, margin: 0 }}>
+            Checkins
+          </h1>
+          <p
+            style={{
+              fontSize: 11,
+              color: 'rgba(245,240,232,0.35)',
+              margin: 0,
+            }}
+          >
             Registros de entrada
           </p>
         </div>
@@ -100,28 +134,27 @@ export function AdminCheckins() {
 
       {/* LEGENDA */}
       <div style={{
-        maxWidth: 520, margin: '12px auto 0', padding: '0 16px',
-        display: 'flex', alignItems: 'center', gap: 8,
+        maxWidth: 520,
+        margin: '12px auto 0',
+        padding: '0 16px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
       }}>
-        <div style={{
-          width: 12, height: 12, borderRadius: 3,
-          border: '2px solid rgba(239,68,68,0.8)',
-          flexShrink: 0,
-        }} />
-        <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.35)', margin: 0 }}>
-          Borda vermelha = entrada após 07:30 (atrasado)
-        </p>
       </div>
 
       {/* GRID DE CHECKINS */}
       <div style={{
-        maxWidth: 520, margin: '0 auto',
+        maxWidth: 520,
+        margin: '0 auto',
         padding: '16px 16px 32px',
       }}>
         {checkins.length === 0 ? (
           <p style={{
-            fontSize: 13, color: 'rgba(245,240,232,0.3)',
-            textAlign: 'center', padding: 40,
+            fontSize: 13,
+            color: 'rgba(245,240,232,0.3)',
+            textAlign: 'center',
+            padding: 40,
           }}>
             Nenhum checkin encontrado
           </p>
@@ -133,14 +166,16 @@ export function AdminCheckins() {
           }}>
             {checkins.map(item => {
               const atrasado = isAtrasado(item.horario)
+
               return (
                 <div
                   key={item.id}
                   className="card"
                   style={{
                     padding: 10,
-                    display: 'flex', flexDirection: 'column', gap: 6,
-                    // borda vermelha para checkins atrasados
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
                     border: atrasado
                       ? '1.5px solid rgba(239,68,68,0.8)'
                       : '1px solid rgba(255,255,255,0.07)',
@@ -151,16 +186,21 @@ export function AdminCheckins() {
                     src={item.foto}
                     onClick={() => setImagemAberta(item.foto)}
                     style={{
-                      width: '100%', height: 80,
-                      objectFit: 'cover', borderRadius: 6, cursor: 'pointer',
+                      width: '100%',
+                      height: 80,
+                      objectFit: 'cover',
+                      borderRadius: 6,
+                      cursor: 'pointer',
                     }}
                     alt=""
                   />
 
-                  {/* badge de atraso */}
+                  {/* Badge de atraso */}
                   {atrasado && (
                     <span style={{
-                      fontSize: 9, fontWeight: 600, letterSpacing: 1,
+                      fontSize: 9,
+                      fontWeight: 600,
+                      letterSpacing: 1,
                       textTransform: 'uppercase',
                       color: 'rgba(239,68,68,0.9)',
                       padding: '2px 0',
@@ -169,20 +209,37 @@ export function AdminCheckins() {
                     </span>
                   )}
 
-                  <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.4)', margin: 0 }}>
+                  <p
+                    style={{
+                      fontSize: 11,
+                      color: 'rgba(245,240,232,0.4)',
+                      margin: 0,
+                    }}
+                  >
                     {item.posto || item.postoId}
                   </p>
-                  <p style={{ fontSize: 10, color: 'rgba(245,240,232,0.3)', margin: 0 }}>
-                    {item.horario ? new Date(item.horario).toLocaleString('pt-BR') : ''}
+
+                  {/* EXIBIR DIRETAMENTE O HORÁRIO */}
+                  <p
+                    style={{
+                      fontSize: 10,
+                      color: 'rgba(245,240,232,0.3)',
+                      margin: 0,
+                    }}
+                  >
+                    {item.horario || ''}
                   </p>
 
                   <button
                     onClick={() => handleOcultar(item.id)}
                     style={{
-                      background: 'none', border: 'none',
+                      background: 'none',
+                      border: 'none',
                       color: 'rgba(232,56,26,0.6)',
-                      fontSize: 11, cursor: 'pointer',
-                      textAlign: 'left', padding: 0,
+                      fontSize: 11,
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      padding: 0,
                     }}
                   >
                     ocultar
@@ -199,15 +256,22 @@ export function AdminCheckins() {
         <div
           onClick={() => setImagemAberta(null)}
           style={{
-            position: 'fixed', inset: 0,
+            position: 'fixed',
+            inset: 0,
             background: 'rgba(0,0,0,0.92)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
             zIndex: 200,
           }}
         >
           <img
             src={imagemAberta}
-            style={{ maxWidth: '92%', maxHeight: '92%', borderRadius: 8 }}
+            style={{
+              maxWidth: '92%',
+              maxHeight: '92%',
+              borderRadius: 8,
+            }}
             alt=""
           />
         </div>
