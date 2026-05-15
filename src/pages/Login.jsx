@@ -6,7 +6,7 @@ import logo from '../assets/Logo1.png'
 import { Eye, EyeOff } from "lucide-react";
 
 export function Login() {
-  const [form, setForm] = useState({ email: '', senha: '' })
+  const [form, setForm] = useState({ cpf: '', senha: '' })
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -17,18 +17,27 @@ export function Login() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!form.email || !form.senha) return erro('Preencha todos os campos')
+    if (!form.cpf || !form.senha) return erro('Preencha todos os campos')
     setLoading(true)
     try {
-      const data = await login(form.email, form.senha)
+      const data = await login(form.cpf, form.senha)
       localStorage.setItem('token', data.token)
       localStorage.setItem('tipo', data.tipo?.toLowerCase())
       navigate('/postos')
     } catch {
-      erro('Email ou senha inválidos')
+      erro('CPF ou senha inválidos')
     } finally {
       setLoading(false)
     }
+  }
+
+  function mascaraCpf(valor) {
+    return valor
+      .replace(/\D/g, '')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+      .slice(0, 14)
   }
 
   return (
@@ -50,10 +59,14 @@ export function Login() {
           </p>
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div >
-              <label style={{ fontSize: 12, color: 'rgba(245,240,232,0.45)', display: 'block', marginBottom: 6 }}>
-                Email
-              </label>
-              <input name="email" type="email" placeholder="seu@email.com" value={form.email} onChange={handleChange} autoComplete="email" />
+              <label>CPF</label>
+              <input
+                name="cpf"
+                type="text"
+                placeholder="000.000.000-00"
+                value={form.cpf}
+                onChange={e => setForm(prev => ({ ...prev, cpf: mascaraCpf(e.target.value) }))}
+              />
             </div>
             <div >
               <label style={{ fontSize: 12, color: 'rgba(245,240,232,0.45)', display: 'block', marginBottom: 6 }}>

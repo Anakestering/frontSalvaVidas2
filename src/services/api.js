@@ -14,13 +14,13 @@ function authJsonHeaders() {
 }
 
 // AUTH
-export async function login(email, senha) {
+export async function login(cpf, senha) {
   const res = await fetch(`${BASE_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, senha }),
+    body: JSON.stringify({ cpf, senha })
   })
-  if (!res.ok) throw new Error('Credenciais inválidas')
+  if (!res.ok) throw new Error('Login inválido')
   return res.json()
 }
 

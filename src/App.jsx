@@ -33,8 +33,7 @@ export default function App() {
       <Route path="/admin/checkins" element={<AdminRoute><AdminCheckins /></AdminRoute>} />   
       <Route path="/admin/checkouts" element={<AdminRoute><AdminCheckouts /></AdminRoute>} />  
       <Route path="/admin/relatorios" element={<AdminRoute><AdminRelatorios /></AdminRoute>} />
-      <Route path="/admin/usuarios" element={<AdminUsuarios />}
-/>
+      <Route path="/admin/usuarios" element={<AdminUsuarios />}/>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
