@@ -194,13 +194,14 @@ export function Postos() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <img src={logo} alt="Brasão" style={{ width: 60, height: 60 }} />
-          <span style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 18, letterSpacing: 3 }}>GUARDAVIDAS</span>
+          <span style={{ fontFamily: "'Bebas Neue', cursive", fontSize: 18, letterSpacing: 2 }}>GUARDAVIDAS</span>
         </div>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {isAdmin && (
             <>
               <NavBtn onClick={() => navigate('/admin/registros')}>Registros</NavBtn>
               <NavBtn onClick={() => navigate('/admin/relatorios')}>Relatórios</NavBtn>
+              <NavBtn onClick={() => navigate('/admin/usuarios')}>Usuários</NavBtn>
             </>
           )}
           <button onClick={logout} style={{
@@ -385,7 +386,7 @@ function NavBtn({ onClick, children }) {
   return (
     <button onClick={onClick} style={{
       background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.1)',
-      borderRadius: 6, color: '#F5F0E8', fontSize: 12, padding: '5px 12px', cursor: 'pointer',
+      borderRadius: 6, color: '#F5F0E8', fontSize: 11, padding: '5px 10px', cursor: 'pointer',
     }}>
       {children}
     </button>
