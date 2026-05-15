@@ -279,16 +279,15 @@ export function Postos() {
 
                   {/* ==================== Badges de status ==================== */}
                   {!inativo && temCheckin && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
-                      {/* Checkin realizado — verde se no horário, vermelho se atrasado */}
-                      <span className={atrasado ? 'badge-red' : 'badge-green'}>
-                        Checkin realizado
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'stretch' }}>
+                      <span className={atrasado ? 'badge-red' : 'badge-green'}
+                        style={{ textAlign: 'center' }}>
+                        Checkin
                       </span>
-
-                      {/* Checkout realizado — só aparece se houver checkout */}
                       {temCheckout && (
-                        <span className="badge-green">
-                          Checkout finalizado
+                        <span className="badge-green"
+                          style={{ textAlign: 'center' }}>
+                          Checkout
                         </span>
                       )}
                     </div>
@@ -297,6 +296,8 @@ export function Postos() {
                   {inativo && (
                     <span style={{ fontSize: 11, color: 'rgba(245,240,232,0.25)' }}>Inativo</span>
                   )}
+
+
 
                   {/* ==================== Botões admin ================= */}
                   {isAdmin && (

@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router-dom'
+import { deletarTodosRegistros } from '../services/api'
+import { confirmar, sucesso, erro } from '../utils/feedback'
 
 /**
  * Página hub de registros.
@@ -7,6 +9,22 @@ import { useNavigate } from 'react-router-dom'
  */
 export function AdminRegistros() {
   const navigate = useNavigate()
+
+  async function handleDeletarTodos() {
+    const ok = await confirmar({
+      titulo: 'Deletar todos os registros?',
+      texto: 'Todos os checkins e checkouts serão apagados permanentemente.',
+      confirmText: 'Deletar tudo',
+      cancelText: 'Cancelar',
+    })
+    if (!ok) return
+    try {
+      await deletarTodosRegistros()
+      sucesso('Todos os registros deletados')
+    } catch {
+      erro('Erro ao deletar registros')
+    }
+  }
 
   return (
     <div className="ocean-bg scanlines min-h-screen">
@@ -63,9 +81,9 @@ export function AdminRegistros() {
             flexShrink: 0,
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(59,130,246,0.9)" strokeWidth="2">
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-              <polyline points="10 17 15 12 10 7"/>
-              <line x1="15" y1="12" x2="3" y2="12"/>
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+              <polyline points="10 17 15 12 10 7" />
+              <line x1="15" y1="12" x2="3" y2="12" />
             </svg>
           </div>
           <div>
@@ -77,7 +95,7 @@ export function AdminRegistros() {
             </p>
           </div>
           <svg style={{ marginLeft: 'auto', flexShrink: 0 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(245,240,232,0.2)" strokeWidth="2">
-            <path d="M9 18l6-6-6-6"/>
+            <path d="M9 18l6-6-6-6" />
           </svg>
         </button>
 
@@ -103,9 +121,9 @@ export function AdminRegistros() {
             flexShrink: 0,
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(34,197,94,0.9)" strokeWidth="2">
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-              <polyline points="16 17 21 12 16 7"/>
-              <line x1="21" y1="12" x2="9" y2="12"/>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
             </svg>
           </div>
           <div>
@@ -117,8 +135,44 @@ export function AdminRegistros() {
             </p>
           </div>
           <svg style={{ marginLeft: 'auto', flexShrink: 0 }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(245,240,232,0.2)" strokeWidth="2">
-            <path d="M9 18l6-6-6-6"/>
+            <path d="M9 18l6-6-6-6" />
           </svg>
+        </button>
+
+        {/* Deletar todos */}
+        <button
+          onClick={handleDeletarTodos}
+          style={{
+            background: 'rgba(232,56,26,0.08)',
+            border: '1px solid rgba(232,56,26,0.25)',
+            borderRadius: 12, padding: '18px 20px',
+            display: 'flex', alignItems: 'center', gap: 14,
+            cursor: 'pointer', textAlign: 'left', width: '100%',
+            transition: 'background 0.15s ease',
+          }}
+          onMouseEnter={e => e.currentTarget.style.background = 'rgba(232,56,26,0.15)'}
+          onMouseLeave={e => e.currentTarget.style.background = 'rgba(232,56,26,0.08)'}
+        >
+          <div style={{
+            width: 40, height: 40, borderRadius: 10,
+            background: 'rgba(232,56,26,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            flexShrink: 0,
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(232,56,26,0.9)" strokeWidth="2">
+              <polyline points="3 6 5 6 21 6" />
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+              <path d="M10 11v6M14 11v6" />
+            </svg>
+          </div>
+          <div>
+            <p style={{ fontSize: 14, fontWeight: 600, margin: 0, color: 'rgba(232,56,26,0.9)' }}>
+              Deletar todos os registros
+            </p>
+            <p style={{ fontSize: 11, color: 'rgba(245,240,232,0.35)', margin: 0, marginTop: 2 }}>
+              Remove todos os checkins e checkouts
+            </p>
+          </div>
         </button>
 
       </div>

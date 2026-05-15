@@ -26,6 +26,15 @@ export function PostoUsuario() {
   const [fotoCheckin, setFotoCheckin] = useState(null)
   const [fotoCheckout, setFotoCheckout] = useState(null)
 
+  function isAtrasado(horario) {
+    if (!horario) return false
+    const partes = String(horario).split(' ')
+    if (partes.length < 2) return false
+    const [horas, minutos] = partes[1].split(':').map(Number)
+    if (Number.isNaN(horas) || Number.isNaN(minutos)) return false
+    return horas > 7 || (horas === 7 && minutos > 30)
+  }
+
   async function carregar() {
     try {
       const [c, o, r, p] = await Promise.all([
@@ -118,6 +127,7 @@ export function PostoUsuario() {
   }
 
   const finalizado = checkouts.length > 0
+  const checkinAtrasado = checkins.some(c => isAtrasado(c.horario))
 
   return (
     <div className="ocean-bg scanlines min-h-screen">
@@ -139,12 +149,21 @@ export function PostoUsuario() {
             {finalizado ? '— Finalizado hoje' : '— Em operação'}
           </p>
         </div>
-        {finalizado
-          ? <span className="badge-green">Finalizado</span>
-          : checkins.length > 0
-            ? <span className="badge-yellow">Em andamento</span>
-            : <span className="badge-red">Aguardando</span>
-        }
+        {checkins.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
+            <span className={checkinAtrasado ? 'badge-red' : 'badge-green'}>
+              {checkinAtrasado
+                ? 'Checkin realizado com atraso'
+                : 'Checkin realizado'}
+            </span>
+
+            {finalizado && (
+              <span className="badge-green">
+                Checkout finalizado
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       <div style={{ maxWidth: 480, margin: '0 auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: 14 }}>
@@ -164,9 +183,14 @@ export function PostoUsuario() {
               onAbrirImagem={setImagemAberta}
             />
           ) : (
-            <button className="btn-secondary" disabled={busy || checkins.length >= 3}
-              onClick={() => inputCheckinRef.current.click()}>
-              {checkins.length >= 3 ? 'Limite atingido' : 'Selecionar Foto'}
+            <button
+              className={checkins.length >= 3 ? 'btn-secondary' : 'btn-primary'}
+              disabled={busy || checkins.length >= 3}
+              onClick={() => inputCheckinRef.current.click()}
+            >
+              {checkins.length >= 3
+                ? 'Limite atingido'
+                : 'Tirar Foto'}
             </button>
           )}
 
@@ -249,7 +273,7 @@ export function PostoUsuario() {
               disabled={busy || !relatorio || checkouts.length >= 3}
               onClick={() => inputCheckoutRef.current.click()}
             >
-              {!relatorio ? 'Envie o relatório primeiro' : checkouts.length >= 3 ? 'Limite atingido' : 'Selecionar Foto'}
+              {!relatorio ? 'Envie o relatório primeiro' : checkouts.length >= 3 ? 'Limite atingido' : 'Tirar Foto'}
             </button>
           )}
 

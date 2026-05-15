@@ -102,6 +102,13 @@ export async function ocultarTodosCheckins() {
   if (!res.ok) throw new Error('Erro')
 }
 
+export async function deletarTodosRegistros() {
+  const res = await fetch(`${BASE_URL}/check/todos`, {
+    method: 'DELETE', headers: authHeaders(),
+  })
+  if (!res.ok) throw new Error('Erro ao deletar registros')
+}
+
 // CHECKOUT
 export async function fazerCheckout(postoId, fotoFile) {
   const form = new FormData()
